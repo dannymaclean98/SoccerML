@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sqlite3 as sq
 import pandas as pd
+import random
+from operator import itemgetter
 
 def get_overall_rating(x, data):
     all_rating = data.execute("""SELECT overall_rating FROM Player_Stats WHERE player_api_id = '%d' """ % (x)).fetchall()
@@ -20,7 +22,7 @@ def get_overall_finishing(x, data):
     mean_rating = np.nanmean(all_rating)
     return mean_rating
 
-
+# Globals 
 data = sq.connect('./database.sqlite/database.sqlite')
 player_stats = data.execute("SELECT * FROM Player_Stats")
 player_info = data.execute("SELECT * FROM Player")
@@ -34,14 +36,24 @@ for api_id in player_api_id:
     player_fifaScore.append(get_overall_rating(api_id, data))
     player_finishing.append(get_overall_finishing(api_id, data))
     player_height.append(get_player_height(api_id, data))
-
-
-
-plt.scatter(player_height, player_finishing)
-# ax.set_xticklabels(n_neighbors)
-plt.xlabel("Player Score")
-plt.ylabel("Player Height")
-plt.title("Player Heights")
+player_height_ints = []
+for thing in player_height:
+    player_height_ints.append(int(round(thing)))
+print("min: ", min(player_height))
+print("max: ", max(player_height))
+random_indices = np.random.randint(50,size=len(player_api_id))
+player_height_subSample = np.array(player_height)
+player_finishing_subSample = np.array(player_finishing)
+player_height_subSample = player_height_subSample[random_indices]
+player_finishing_subSample = player_finishing_subSample[random_indices]
+plt.scatter(player_height_subSample, player_finishing_subSample)
+plt.xlabel("Player Height (cm)")
+plt.ylabel("Player Finishing (0-100)")
+plt.title("Player Finishing vs. Height")
 plt.show()
+table_data = zip(player_height_subSample, player_finishing_subSample)
+table_data = sorted(table_data, key=itemgetter(0))
+
+
 
 
